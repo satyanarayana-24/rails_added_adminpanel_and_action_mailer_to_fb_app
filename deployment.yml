@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: railsdeploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rails
+  template:
+    metadata:
+      labels:
+        app: rails
+    spec:
+      containers:
+      - name: rails-container
+        image: yourdockerhub/rails-app:latest
+        ports:
+        - containerPort: 3000
