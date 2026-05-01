@@ -24,38 +24,50 @@ pipeline {
         }
 
         stage('Install Gems') {
-            steps {
-                sh '''
-                gem install bundler
-                bundle install
-                '''
-            }
-        }
+    steps {
+        sh '''
+        # Install correct bundler version in user space
+        gem install bundler -v 2.4.10 --user-install
 
-        stage('Setup Database') {
-            steps {
-                sh '''
-                bundle exec rails db:create
-                bundle exec rails db:migrate
-                '''
-            }
-        }
+        # Fix PATH so bundle command works
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
 
-        stage('Run Tests') {
-            steps {
-                sh '''
-                bundle exec rails test || true
-                '''
-            }
-        }
+        # Tell bundler to install gems locally (not system)
+        bundle config set --local path 'vendor/bundle'
+
+        # Install gems
+        bundle install
+        '''
+    }
+}
+
+       stage('Setup Database') {
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rails db:create
+        bundle exec rails db:migrate
+        '''
+    }
+}
+
+       stage('Run Tests') {
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rails test || true
+        '''
+    }
+}
 
         stage('Precompile Assets') {
-            steps {
-                sh '''
-                bundle exec rake assets:precompile
-                '''
-            }
-        }
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rake assets:precompile
+        '''
+    }
+}
 
         stage('Package Artifact') {
             steps {
