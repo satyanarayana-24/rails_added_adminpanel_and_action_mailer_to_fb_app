@@ -1,6 +1,9 @@
 pipeline {
     agent any
-
+         docker {
+            image 'ruby:3.2'
+            args '-u root'
+        }
     // tools {
     //     jdk 'jdk21'
     // }
