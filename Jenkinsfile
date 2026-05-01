@@ -114,7 +114,7 @@ pipeline {
                 -Dsonar.projectName=fb-App \
                 -Dsonar.sources=app \
                 -Dsonar.projectVersion=${BUILD_NUMBER} \
-                -Dsonar.host.url=http://16.170.204.160:9000
+                
                 """
             }
         }
