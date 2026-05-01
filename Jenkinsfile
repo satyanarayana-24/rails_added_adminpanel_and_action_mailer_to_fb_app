@@ -1,9 +1,9 @@
+
 pipeline {
     agent any
 
     environment {
         RAILS_ENV = 'test'
-        PATH = "$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
     }
 
     stages {
@@ -24,78 +24,105 @@ pipeline {
             }
         }
 
-        stage('Install Bundler & Gems') {
-            steps {
-                sh '''
-                gem install bundler -v 2.4.10 --user-install
+        stage('Install Gems') {
+    steps {
+        sh '''
+        # Install correct bundler version in user space
+        gem install bundler -v 2.4.10 --user-install
 
-                bundle config set --local path 'vendor/bundle'
-                bundle install --jobs=4 --retry=3
-                '''
-            }
-        }
+        # Fix PATH so bundle command works
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
 
-        stage('Setup Database') {
-            steps {
-                sh '''
-                bundle exec rails db:drop || true
-                bundle exec rails db:create
-                bundle exec rails db:migrate
-                '''
-            }
-        }
+        # Tell bundler to install gems locally (not system)
+        bundle config set --local path 'vendor/bundle'
 
-        stage('Run Tests') {
-            steps {
-                sh '''
-                bundle exec rails test
-                '''
-            }
-        }
+        # Install gems
+        bundle install
+        '''
+    }
+}
+
+       stage('Setup Database') {
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rails db:create
+        bundle exec rails db:migrate
+        '''
+    }
+}
+
+       stage('Run Tests') {
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rails test || true
+        '''
+    }
+}
 
         stage('Precompile Assets') {
-            steps {
-                sh '''
-                bundle exec rake assets:precompile
-                '''
+    steps {
+        sh '''
+        export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
+        bundle exec rake assets:precompile
+        '''
+    }
+}
+
+
+        //      stage('SonarQube Analysis') {
+        //     steps {
+        //         withSonarQubeEnv("${SonarQube}") {
+        //             sh '''
+        //             sonar-scanner \
+        //               -Dsonar.projectKey=zomato \
+        //               -Dsonar.sources=src \
+        //               -Dsonar.projectName=Zomato-App \
+        //               -Dsonar.projectVersion=${BUILD_NUMBER}
+        //             '''
+        //         }
+        //     }
+        // }
+
+         stage('SonarQube Analysis') {
+    steps {
+        script {
+            def scannerHome = tool 'SonarScanner'
+
+            withSonarQubeEnv('SonarQube') {
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
+                -Dsonar.projectKey=fb \
+                -Dsonar.projectName=fb-App \
+                -Dsonar.sources=src \
+                -Dsonar.projectVersion=${BUILD_NUMBER}
+                """
             }
         }
-
-        stage('SonarQube Analysis') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner'
-
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=zomato \
-                        -Dsonar.projectName=Zomato-App \
-                        -Dsonar.sources=. \
-                        -Dsonar.projectVersion=${BUILD_NUMBER}
-                        """
-                    }
-                }
-            }
-        }
+    }
+}
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
+                timeout(time: 2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
         }
 
+        
+        
+        
         stage('Package Artifact') {
             steps {
                 sh '''
-                zip -r rails-build-${BUILD_NUMBER}.zip .
+                zip -r rails-build.zip .
                 '''
             }
         }
 
-        // stage('Upload to Nexus') {
+        //      working    stage('Upload to Nexus') {
         //     steps {
         //         withCredentials([usernamePassword(
         //             credentialsId: 'nexus-cred',
@@ -104,7 +131,7 @@ pipeline {
         //         )]) {
         //             sh '''
         //             curl -v -u $NEXUS_USER:$NEXUS_PASS \
-        //             --upload-file rails-build-${BUILD_NUMBER}.zip \
+        //             --upload-file rails-build.zip \
         //             http://16.170.204.160:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
         //             '''
         //         }
@@ -121,156 +148,6 @@ pipeline {
         }
     }
 }
-
-// pipeline {
-//     agent any
-
-//     environment {
-//         RAILS_ENV = 'test'
-//     }
-
-//     stages {
-
-//         stage('Checkout Code') {
-//             steps {
-//                 git branch: 'main', url: 'https://github.com/satyanarayana-24/rails_added_adminpanel_and_action_mailer_to_fb_app.git'
-//             }
-//         }
-
-//         stage('Verify Environment') {
-//             steps {
-//                 sh '''
-//                 ruby -v
-//                 gem -v
-//                 node -v
-//                 '''
-//             }
-//         }
-
-//         stage('Install Gems') {
-//     steps {
-//         sh '''
-//         # Install correct bundler version in user space
-//         gem install bundler -v 2.4.10 --user-install
-
-//         # Fix PATH so bundle command works
-//         export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
-
-//         # Tell bundler to install gems locally (not system)
-//         bundle config set --local path 'vendor/bundle'
-
-//         # Install gems
-//         bundle install
-//         '''
-//     }
-// }
-
-//        stage('Setup Database') {
-//     steps {
-//         sh '''
-//         export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
-//         bundle exec rails db:create
-//         bundle exec rails db:migrate
-//         '''
-//     }
-// }
-
-//        stage('Run Tests') {
-//     steps {
-//         sh '''
-//         export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
-//         bundle exec rails test || true
-//         '''
-//     }
-// }
-
-//         stage('Precompile Assets') {
-//     steps {
-//         sh '''
-//         export PATH="$HOME/.local/share/gem/ruby/3.3.0/bin:$PATH"
-//         bundle exec rake assets:precompile
-//         '''
-//     }
-// }
-
-
-//         //      stage('SonarQube Analysis') {
-//         //     steps {
-//         //         withSonarQubeEnv("${SonarQube}") {
-//         //             sh '''
-//         //             sonar-scanner \
-//         //               -Dsonar.projectKey=zomato \
-//         //               -Dsonar.sources=src \
-//         //               -Dsonar.projectName=Zomato-App \
-//         //               -Dsonar.projectVersion=${BUILD_NUMBER}
-//         //             '''
-//         //         }
-//         //     }
-//         // }
-
-//          stage('SonarQube Analysis') {
-//     steps {
-//         script {
-//             def scannerHome = tool 'SonarScanner'
-
-//             withSonarQubeEnv('SonarQube') {
-//                 sh """
-//                 ${scannerHome}/bin/sonar-scanner \
-//                 -Dsonar.projectKey=zomato \
-//                 -Dsonar.projectName=Zomato-App \
-//                 -Dsonar.sources=src \
-//                 -Dsonar.projectVersion=${BUILD_NUMBER}
-//                 """
-//             }
-//         }
-//     }
-// }
-
-//         stage('Quality Gate') {
-//             steps {
-//                 timeout(time: 2, unit: 'MINUTES') {
-//                     waitForQualityGate abortPipeline: true
-//                 }
-//             }
-//         }
-
-        
-        
-        
-//         stage('Package Artifact') {
-//             steps {
-//                 sh '''
-//                 zip -r rails-build.zip .
-//                 '''
-//             }
-//         }
-
-//         //      working    stage('Upload to Nexus') {
-//         //     steps {
-//         //         withCredentials([usernamePassword(
-//         //             credentialsId: 'nexus-cred',
-//         //             usernameVariable: 'NEXUS_USER',
-//         //             passwordVariable: 'NEXUS_PASS'
-//         //         )]) {
-//         //             sh '''
-//         //             curl -v -u $NEXUS_USER:$NEXUS_PASS \
-//         //             --upload-file rails-build.zip \
-//         //             http://16.170.204.160:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
-//         //             '''
-//         //         }
-//         //     }
-//         // }
-//     }
-
-//     post {
-//         success {
-//             echo "✅ Build completed successfully"
-//         }
-//         failure {
-//             echo "❌ Build failed"
-//         }
-//     }
-// }
 
 
 
