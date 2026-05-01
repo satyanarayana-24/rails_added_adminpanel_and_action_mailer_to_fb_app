@@ -28,19 +28,18 @@ pipeline {
             }
         }
 
-        stage('Install System Dependencies') {
+        stage('Install Dependencies') {
             steps {
                 sh '''
-                # Install required packages (safe even if already installed)
-                apt-get update -y
-                apt-get install -y ruby-full build-essential zlib1g-dev nodejs npm sqlite3 libsqlite3-dev zip
+                apt-get update
+                apt-get install -y nodejs yarn
 
-                # Install bundler if missing
-                gem install bundler || true
+                gem install bundler
+                bundle install
                 '''
             }
         }
-
+        
         stage('Install Gems') {
             steps {
                 sh '''
@@ -49,12 +48,9 @@ pipeline {
             }
         }
 
-        stage('Setup Database') {
+         stage('Setup Database') {
             steps {
                 sh '''
-                # Use SQLite (simplest)
-                sed -i 's/mysql2/sqlite3/g' config/database.yml || true
-
                 bundle exec rails db:create
                 bundle exec rails db:migrate
                 '''
