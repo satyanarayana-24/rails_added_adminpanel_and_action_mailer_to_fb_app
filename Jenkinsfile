@@ -103,21 +103,21 @@ pipeline {
             }
         }
 
-                stage('Upload to Nexus') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'nexus-cred',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
-                    sh '''
-                    curl -v -u $NEXUS_USER:$NEXUS_PASS \
-                    --upload-file rails-build.zip \
-                    http://16.170.204.160:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
-                    '''
-                }
-            }
-        }
+        //      working    stage('Upload to Nexus') {
+        //     steps {
+        //         withCredentials([usernamePassword(
+        //             credentialsId: 'nexus-cred',
+        //             usernameVariable: 'NEXUS_USER',
+        //             passwordVariable: 'NEXUS_PASS'
+        //         )]) {
+        //             sh '''
+        //             curl -v -u $NEXUS_USER:$NEXUS_PASS \
+        //             --upload-file rails-build.zip \
+        //             http://16.170.204.160:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
+        //             '''
+        //         }
+        //     }
+        // }
     }
 
     post {
