@@ -103,17 +103,16 @@ pipeline {
 //     }
 // }
 
-        stage('SonarQube Analysis') {
+       stage('SonarQube Analysis') {
     steps {
         script {
             def scannerHome = tool 'SonarScanner'
-
             withSonarQubeEnv('SonarQube') {
                 sh """
                 ${scannerHome}/bin/sonar-scanner \
                 -Dsonar.projectKey=fb \
                 -Dsonar.projectName=fb-App \
-                -Dsonar.sources=src \
+                -Dsonar.sources=app \
                 -Dsonar.projectVersion=${BUILD_NUMBER} \
                 -Dsonar.host.url=http://16.170.204.160:9000
                 """
