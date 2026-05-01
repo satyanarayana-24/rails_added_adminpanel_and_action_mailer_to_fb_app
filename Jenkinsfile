@@ -84,31 +84,31 @@ pipeline {
         //     }
         // }
 
-//          stage('SonarQube Analysis') {
-//     steps {
-//         script {
-//             def scannerHome = tool 'SonarScanner'
+         stage('SonarQube Analysis') {
+    steps {
+        script {
+            def scannerHome = tool 'SonarScanner'
 
-//             withSonarQubeEnv('SonarQube') {
-//                 sh """
-//                 ${scannerHome}/bin/sonar-scanner \
-//                 -Dsonar.projectKey=zomato \
-//                 -Dsonar.projectName=Zomato-App \
-//                 -Dsonar.sources=src \
-//                 -Dsonar.projectVersion=${BUILD_NUMBER}
-//                 """
-//             }
-//         }
-//     }
-// }
+            withSonarQubeEnv('SonarQube') {
+                sh """
+                ${scannerHome}/bin/sonar-scanner \
+                -Dsonar.projectKey=zomato \
+                -Dsonar.projectName=Zomato-App \
+                -Dsonar.sources=src \
+                -Dsonar.projectVersion=${BUILD_NUMBER}
+                """
+            }
+        }
+    }
+}
 
-//         stage('Quality Gate') {
-//             steps {
-//                 timeout(time: 2, unit: 'MINUTES') {
-//                     waitForQualityGate abortPipeline: true
-//                 }
-//             }
-//         }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 
         
         
