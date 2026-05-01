@@ -87,7 +87,7 @@ pipeline {
                     sh '''
                     curl -v -u $NEXUS_USER:$NEXUS_PASS \
                     --upload-file rails-build.zip \
-                    http://localhost:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
+                    http://13.60.52.108:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
                     '''
                 }
             }
