@@ -76,6 +76,22 @@ pipeline {
                 '''
             }
         }
+
+                stage('Upload to Nexus') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'nexus-cred',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh '''
+                    curl -v -u $NEXUS_USER:$NEXUS_PASS \
+                    --upload-file rails-build.zip \
+                    http://<NEXUS_HOST>:8081/repository/rails-artifacts/rails-build-${BUILD_NUMBER}.zip
+                    '''
+                }
+            }
+        }
     }
 
     post {
