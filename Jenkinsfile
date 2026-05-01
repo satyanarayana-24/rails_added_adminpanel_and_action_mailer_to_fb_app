@@ -1,6 +1,6 @@
 pipeline {
     agent any
-         docker {
+         tools {
             image 'ruby:3.2'
             args '-u root'
         }
