@@ -16,39 +16,23 @@ pipeline {
         stage('Verify Environment') {
             steps {
                 sh '''
-                echo "Checking Ruby..."
-                ruby -v || echo "Ruby NOT installed"
-
-                echo "Checking Gem..."
-                gem -v || echo "Gem NOT installed"
-
-                echo "Checking Node..."
-                node -v || echo "Node NOT installed"
+                ruby -v
+                gem -v
+                node -v
                 '''
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Gems') {
             steps {
                 sh '''
-                apt-get update
-                apt-get install -y nodejs yarn
-
                 gem install bundler
                 bundle install
                 '''
             }
         }
-        
-        stage('Install Gems') {
-            steps {
-                sh '''
-                bundle install
-                '''
-            }
-        }
 
-         stage('Setup Database') {
+        stage('Setup Database') {
             steps {
                 sh '''
                 bundle exec rails db:create
@@ -91,8 +75,6 @@ pipeline {
         }
     }
 }
-
-
 
 
 
